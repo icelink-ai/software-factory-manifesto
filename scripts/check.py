@@ -25,7 +25,7 @@ FORBIDDEN = [
               r"\bissue #\d+", r"\bPR #\d+", r"samuk", r"C0[A-Z0-9]{8,}")
 ]
 THEME_PREFIX = {
-    "01-work-intake": "IN", "02-deterministic-spine": "SP", "03-guardrails": "GR",
+    "00-journey": "--", "01-work-intake": "IN", "02-deterministic-spine": "SP", "03-guardrails": "GR",
     "04-sandboxes": "SB", "05-verification": "VE", "06-merge-policy": "MG",
     "07-memory-and-context": "MC", "08-self-improvement": "SI", "09-adoption": "AD",
 }
@@ -123,11 +123,75 @@ def main() -> int:
         elif not target.exists() or target.read_text(encoding="utf-8") != content:
             errors.append(f"{name} is out of date; run with --write")
 
+    errors += readability([ROOT / "README.md", *pages])
     for e in errors:
         print("ERROR", e)
     print(f"{len(pages) + 2} pages, {len(rules)} rules, {n_mermaid} mermaid diagrams, "
           f"{len(errors)} errors")
     return 1 if errors else 0
+
+
+def prose_sentences(text: str) -> list[str]:
+    """Sentences from prose only: no front matter, code, tables, headings or link targets."""
+    _, body = parse_front_matter(text)
+    body = re.sub(r"```.*?```", "", body, flags=re.S)
+    keep = []
+    for line in body.splitlines():
+        s = re.sub(r"^(> ?)+", "", line.strip())
+        if not s or s.startswith(("|", "#", "<", "[!")):
+            keep.append("")
+            continue
+        s = re.sub(r"^(> ?)+", "", s)
+        if re.match(r"^(\d+\.|[-*])\s", s):
+            keep.append("")  # each list item is its own unit
+        s = re.sub(r"^(\d+\.|[-*]|- \[ \])\s+", "", s)
+        # A bold label ("**Start the run.**") ends a sentence of its own.
+        s = re.sub(r"^\*\*([^*]+?)\*\*", r"\1", s)
+        s = re.sub(r"\[([^\]]*)\]\([^)]*\)", r"\1", s)
+        s = re.sub(r"`[^`]*`", "x", s)
+        keep.append(s)
+    paragraphs = " ".join(line if line else "\n" for line in keep).split("\n")
+    out = []
+    for para in paragraphs:
+        for sent in re.split(r"(?<=[.!?:])\s+(?=[A-Z\"(])", para.strip()):
+            if len(sent.split()) >= 3:
+                out.append(sent)
+    return out
+
+
+MAX_AVG, MAX_LEN = 20, 35
+
+
+def readability(pages: list[Path]) -> list[str]:
+    """Report pages whose average sentence is too long, and sentences over the limit."""
+    errors, total, count = [], 0, 0
+    for page in pages:
+        sents = prose_sentences(page.read_text(encoding="utf-8"))
+        if not sents:
+            continue
+        lengths = [len(s.split()) for s in sents]
+        total += sum(lengths)
+        count += len(lengths)
+        avg = sum(lengths) / len(lengths)
+        rel = page.relative_to(ROOT).as_posix()
+        if avg > MAX_AVG:
+            errors.append(f"{rel}: average sentence {avg:.1f} words (max {MAX_AVG})")
+        for s, n in zip(sents, lengths):
+            if n > MAX_LEN:
+                errors.append(f"{rel}: sentence of {n} words: {s[:70]}...")
+    if count:
+        print(f"readability: {count} sentences, average {total / count:.1f} words")
+    return errors
+
+
+def rebase_link(m: re.Match, page: Path) -> str:
+    """Rewrite a link found in a page so it works from the repository root."""
+    target = m.group(1)
+    if target.startswith(("http://", "https://", "#", "mailto:")):
+        return m.group(0)
+    path, _, anchor = target.partition("#")
+    rel = (page.parent / path).resolve().relative_to(ROOT).as_posix()
+    return m.group(0).replace(f"({target})", f"({rel}{'#' + anchor if anchor else ''})")
 
 
 def render_rules(rules: list[tuple[str, str, Path]]) -> str:
@@ -146,6 +210,7 @@ def render_rules(rules: list[tuple[str, str, Path]]) -> str:
             title = theme.split("-", 1)[1].replace("-", " ").capitalize()
             out += ["", f"## {theme[:2]}. {title}", ""]
         rel = page.relative_to(ROOT).as_posix()
+        text = LINK_RE.sub(lambda m: rebase_link(m, page), text)
         out.append(f"- [{rid}]({rel}) {text}")
     return "\n".join(out) + "\n"
 

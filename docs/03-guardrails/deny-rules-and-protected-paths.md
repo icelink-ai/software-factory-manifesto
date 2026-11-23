@@ -3,50 +3,78 @@ id: 03-guardrails/deny-rules-and-protected-paths
 level: 2
 parent: README.md
 children: []
-summary: Block irreversible actions in the harness with versioned deny rules, and require a human merge for any change to paths that define the factory, CI, infrastructure or auth.
+summary: Block irreversible actions in the harness with versioned deny rules, and require a person to merge any change to CI, the factory definition, infrastructure or auth.
 prerequisites: []
 ---
 
 # Deny rules and protected paths
 
-> Ask one question of every action: if the agent gets this wrong once, can it be undone?
+> **In short:** ask one question about every action: if the agent gets it wrong once, can you
+> undo it? If not, block it.
 
-Wrong code can be reverted. A leaked secret, a deleted branch, a production deploy or a rewritten
-history cannot [S7].
+## The problem
 
-## Rules
+Wrong code is cheap. You revert the commit. Some mistakes can't be reverted: a leaked secret, a
+deleted branch, a rewritten history, a production deploy [S7].
 
-- **GR-22** Irreversible actions MUST be denied by the harness before any classifier or model
-  judgment runs. Minimum list: reading secret files (`.env*`, keys, state files), force push,
-  rewriting the main branch, deleting branches or data, deploying or applying infrastructure,
-  merging one's own PR.
-- **GR-23** Deny rules MUST be versioned in the repository and reviewed like code.
-- **GR-24** The merge policy MUST define protected paths, and any PR touching them MUST need a
-  human merge regardless of risk or kind.
-- **GR-25** Protected paths MUST include at least: CI and workflow definitions, the factory's own
-  definition (prompts, gate, policy), agent instruction files, infrastructure, auth and permission
-  code.
-- **GR-26** The factory's credentials SHOULD NOT allow changing CI definitions at all. When a job
-  needs such a change, the builder MUST leave the patch for a person to apply.
+There is a second, quieter risk. If an agent can merge a change to the gate, the prompts or the
+merge policy, it can switch off every other guardrail. Nothing else on this page matters if the
+factory can rewrite its own rules.
 
-## Diagram
+## How it works
+
+Two mechanisms work together.
+
+1. **Deny rules** live in the agent's harness, versioned in the repository. They block an action
+   before it runs, before any model decides anything. The minimum list:
+   - reading secret files (`.env*`, keys, infrastructure state files);
+   - force push, rewriting the main branch, deleting branches or data;
+   - deploying or applying infrastructure;
+   - merging its own pull request.
+2. **Protected paths** live in the merge policy. Any pull request that touches them needs a
+   person to merge, whatever its risk. The minimum list: CI definitions, the factory definition
+   (prompts, gate, policy), agent instruction files, infrastructure, auth code.
+
+The diagram shows where each one acts.
 
 ```mermaid
 flowchart TD
-    A[Agent action] --> D{"Deny rule match?"}
-    D -->|yes| BLK["Blocked by harness<br/>no model judgment involved"]
-    D -->|no| C["Runs inside sandbox"]
-    C --> PR[PR opened]
-    PR --> P{"Touches protected path?"}
-    P -->|yes| H["Human merge only"]
-    P -->|no| POL["Normal merge policy<br/>risk x kind"]
+    A["Agent tries an action"]:::agent --> D{"Deny rule<br/>matches?"}:::script
+    D -->|yes| BLK["Blocked by the harness"]:::stop
+    D -->|no| C["Runs inside the sandbox"]:::script
+    C --> PR["Pull request"]:::state
+    PR --> P{"Touches a<br/>protected path?"}:::script
+    P -->|yes| H["A person merges"]:::person
+    P -->|no| POL["Normal merge policy"]:::script
+    classDef person fill:#dbeafe,stroke:#2563eb,color:#1e3a8a
+    classDef script fill:#f1f5f9,stroke:#64748b,color:#0f172a
+    classDef agent fill:#ede9fe,stroke:#7c3aed,color:#4c1d95
+    classDef state fill:#dcfce7,stroke:#16a34a,color:#14532d
+    classDef stop fill:#ffedd5,stroke:#ea580c,color:#7c2d12
 ```
 
-## Why the factory cannot edit its own rules
+## Example
 
-If an agent can merge a change to the gate, the prompts or the merge policy, every other guardrail
-is advisory. Self-improvement still happens (see [Factory-as-code](../08-self-improvement/factory-as-code.md)),
-but through PRs that a person merges.
+Ana's bug fix needs a new environment variable in the CI workflow. In our setup, the factory's
+token can't change CI files at all. So the builder does the rest of the work, and leaves the CI
+change as a patch in a comment. A person applies it. The friction is on purpose.
+
+> [!IMPORTANT]
+> The factory still improves itself. Agents may propose changes to protected paths through pull
+> requests. People merge them. See [factory-as-code](../08-self-improvement/factory-as-code.md).
+
+## Checklist
+
+- **GR-22** Irreversible actions MUST be denied by the harness before any model judgment runs. At
+  least: reading secret files, force push, rewriting main, deleting branches or data, deploying or
+  applying infrastructure, merging one's own PR.
+- **GR-23** Deny rules MUST be versioned in the repository and reviewed like code.
+- **GR-24** The merge policy MUST define protected paths, and any PR touching them MUST need a
+  human merge, whatever its risk or kind.
+- **GR-25** Protected paths MUST include at least CI definitions, the factory definition, agent
+  instruction files, infrastructure, and auth and permission code.
+- **GR-26** The factory's credentials SHOULD NOT allow changing CI definitions. When a job needs
+  such a change, the builder MUST leave the patch for a person to apply.
 
 ## Sources
 

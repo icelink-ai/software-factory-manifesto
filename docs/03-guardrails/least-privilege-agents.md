@@ -3,62 +3,68 @@ id: 03-guardrails/least-privilege-agents
 level: 2
 parent: README.md
 children: []
-summary: Give each stage its own agent identity with only the tools and credentials it needs; use a general coding agent for building and small domain agents at the edges.
+summary: Give each stage its own agent identity with only the tools it needs; use a general agent to code and small domain agents at the edges.
 prerequisites: [deny-rules-and-protected-paths.md]
 ---
 
 # Least-privilege agents
 
-> An agent cannot do what it has no tool for.
+> **In short:** an agent can't do what it has no tool for. Give each one only what its job needs.
 
-## Rules
+## The problem
 
-- **GR-27** Each stage (triage, build, review, edge functions) MUST run under its own identity with
-  its own permission set.
-- **GR-28** Identity MUST come from authentication (the service account or token of the caller),
-  never from a parameter the agent passes.
+It's tempting to run one powerful agent with access to everything: the repository, email, the
+cloud console, the database. When that agent gets confused, it can do broad damage.
+
+One speaker describes an agent with email access that tried to shut down production. It had
+hallucinated a security incident [S10]. Nothing stopped it, because nothing limited it.
+
+## How it works
+
+1. **Give each stage its own identity.** Triage, build and review run as different accounts.
+2. **Take the identity from authentication**, never from a parameter the agent passes. An agent
+   can't claim to be someone else.
+3. **Give read-only access by default.** Triage and review only read. Only the builder pushes,
+   and only to its own branch.
+4. **Use small domain agents at the edges.** Sorting alerts or customer feedback doesn't need a
+   coding agent. A small agent with one or two tools, and its own eval, is cheaper and safer [S10].
+5. **Grow access with trust**, like a new hire: read first, then small actions, then ownership [S9].
+
+The table shows what each agent in the factory can do.
+
+| Agent | Can | Can't |
+|---|---|---|
+| Triage | Read the repo, the spec and memory | Push, label, comment |
+| Builder | Read the repo, push its own branch, open a PR, write its own memory | Merge, change CI, read secrets |
+| Reviewer | Read the PR and evidence, comment, set a review label | Push code, merge |
+| Alert triage | Read alerts, open an issue | Touch the repository |
+
+## Example
+
+When Ana's request arrives, the triage agent reads the `reports` module and the spec, and returns
+its verdict as data. It has no way to edit the issue. A script applies the verdict. Later, the
+builder can push to `factory/issue-412`, but not to `main`.
+
+> [!NOTE]
+> The sources disagree on general versus specialized agents. Some use a general agent with an
+> orchestrator [S1][S7]. Others prefer many small ones [S10]. We use a general agent for coding
+> and small agents at the edges.
+
+## Checklist
+
+- **GR-27** Each stage (triage, build, review, edge functions) MUST run under its own identity
+  with its own permissions.
+- **GR-28** Identity MUST come from authentication, never from a parameter the agent passes.
 - **GR-29** Triage and review MUST be read-only on the repository. Only the builder MAY push, and
   only to its own branch.
-- **GR-30** Edge functions (feedback triage, alert triage, data questions) SHOULD be small
-  domain agents with one or two tools and their own eval, not the general coding agent.
-- **GR-31** Access SHOULD grow with demonstrated reliability, like a new employee's: read-only
-  first, then scoped actions, then ownership of an outcome.
-
-## Diagram
-
-```mermaid
-flowchart LR
-    subgraph Triage["Triage agent"]
-        T1[read repo]
-        T2[read spec]
-        T3[read memory]
-    end
-    subgraph Builder["Builder agent"]
-        B1[read repo]
-        B2[push own branch]
-        B3[open PR]
-        B4[write own memory]
-    end
-    subgraph Reviewer["Reviewer agent"]
-        R1[read PR and evidence]
-        R2[comment and label]
-    end
-    subgraph Edge["Domain agents"]
-        E1["alert triage: read alerts, open issue"]
-        E2["feedback triage: read feedback, open issue"]
-    end
-```
-
-## Why
-
-A general agent with broad tools can do broad damage: one source describes an agent with email
-access that tried to shut down production after hallucinating a security incident [S10]. Small,
-specific agents are cheaper, easier to evaluate, and fail in smaller ways [S10]. Bots that start
-read-only and earn wider permissions are adopted faster by the people around them [S9].
+- **GR-30** Edge functions (feedback triage, alert triage, data questions) SHOULD use small domain
+  agents with one or two tools and their own eval.
+- **GR-31** Access SHOULD grow with demonstrated reliability: read-only first, then scoped
+  actions, then ownership of an outcome.
 
 ## Sources
 
-[S9] [S10] [R]
+[S1] [S7] [S9] [S10] [R]
 
 ## Up
 

@@ -1,5 +1,7 @@
 name: check
+
 on: [push, pull_request]
+
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -8,4 +10,12 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - run: python scripts/check.py
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Structure, links, rule ids and readability
+        run: python scripts/check.py
+      - run: npm ci
+      - name: Site build (fails on dead links)
+        run: npm run docs:build
