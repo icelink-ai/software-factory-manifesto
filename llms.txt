@@ -1,0 +1,87 @@
+# The Software Factory Manifesto
+
+> Best practices for a fully automated software factory where AI agents turn requests into merged, verified changes. Three levels: README (overview), docs/NN-theme/README.md (theme), docs/NN-theme/*.md (subtopic). All rules by id: RULES.md. How to use: AGENTS.md.
+
+## Start
+
+- [README.md](README.md): thesis, nine principles, factory map, reading paths
+- [AGENTS.md](AGENTS.md): how agents should read, apply and cite this manifesto
+- [RULES.md](RULES.md): every rule by id with links
+
+## 01-work-intake
+
+- [docs/01-work-intake/README.md](docs/01-work-intake/README.md): Work enters where people already talk, is classified by a read-only triage step on risk, kind and size, and only well-formed small jobs reach a builder.
+- [docs/01-work-intake/intake-surfaces.md](docs/01-work-intake/intake-surfaces.md): Accept work from chat, issues and alerts, turn each request into a tracked item linked to its origin, and report back on the same thread.
+- [docs/01-work-intake/request-kinds.md](docs/01-work-intake/request-kinds.md): Classify every request into one of six kinds; the kind changes what the request must contain, the builder's first step, the evidence required and the merge ceiling, without adding pipeline states.
+- [docs/01-work-intake/sizing-and-stacks.md](docs/01-work-intake/sizing-and-stacks.md): A job must fit one bounded run in one module; larger requests become an ordered stack of small parts that advance only after the previous part merges.
+- [docs/01-work-intake/triage-and-risk.md](docs/01-work-intake/triage-and-risk.md): A read-only triage agent returns a structured verdict (risk, kind, size, criteria, questions) that a script applies; risk later decides reviewers and merge autonomy.
+
+## 02-deterministic-spine
+
+- [docs/02-deterministic-spine/README.md](docs/02-deterministic-spine/README.md): Flow and state live in deterministic code; LLMs make judgment calls inside stages and never decide what happens next or edit the pipeline's state.
+- [docs/02-deterministic-spine/failure-handling.md](docs/02-deterministic-spine/failure-handling.md): Failures are states, not log lines; every workflow ends with a failure hook, retries are bounded, and jobs stuck too long raise an alert.
+- [docs/02-deterministic-spine/idempotent-dispatch.md](docs/02-deterministic-spine/idempotent-dispatch.md): Every stage keys its work on the triggering event id and on (item, stage), so redelivered webhooks and duplicate triggers never start a second run.
+- [docs/02-deterministic-spine/job-state-machine.md](docs/02-deterministic-spine/job-state-machine.md): Nine states and a closed transition table cover every request kind; hold is reachable from every non-final state.
+- [docs/02-deterministic-spine/single-writer.md](docs/02-deterministic-spine/single-writer.md): One CLI owns every write to the job record; agents and workflows call it, and read-only consumers read the store directly.
+
+## 03-guardrails
+
+- [docs/03-guardrails/README.md](docs/03-guardrails/README.md): Trust comes from the environment, not the prompt; every correction becomes code (architecture, lint, types, tests), prose stays minimal, and the irreversible is blocked outright.
+- [docs/03-guardrails/deny-rules-and-protected-paths.md](docs/03-guardrails/deny-rules-and-protected-paths.md): Block irreversible actions in the harness with versioned deny rules, and require a human merge for any change to paths that define the factory, CI, infrastructure or auth.
+- [docs/03-guardrails/inverted-pyramid.md](docs/03-guardrails/inverted-pyramid.md): Invest most in code structure and static analysis, less in runtime and formal checks, little in prose rules, and use human review last.
+- [docs/03-guardrails/least-privilege-agents.md](docs/03-guardrails/least-privilege-agents.md): Give each stage its own agent identity with only the tools and credentials it needs; use a general coding agent for building and small domain agents at the edges.
+- [docs/03-guardrails/minimal-agent-instructions.md](docs/03-guardrails/minimal-agent-instructions.md): Keep AGENTS.md and CLAUDE.md short, factual and limited to what the code cannot show; move enforceable rules into checks and audit the file regularly.
+- [docs/03-guardrails/teaching-lint-rules.md](docs/03-guardrails/teaching-lint-rules.md): Turn every repeated correction into a check whose error message tells the agent the root-cause fix, and count those checks as a health metric.
+
+## 04-sandboxes
+
+- [docs/04-sandboxes/README.md](docs/04-sandboxes/README.md): Every run happens in a disposable cloud environment that runs the whole system locally against mocks, with no secrets in reach and restricted network; the machine is disposable, what leaves it is not.
+- [docs/04-sandboxes/disposable-environments.md](docs/04-sandboxes/disposable-environments.md): Build run environments from a versioned image refreshed on a schedule from the latest main; a broken image is a job for an agent, not a person.
+- [docs/04-sandboxes/local-with-mocks.md](docs/04-sandboxes/local-with-mocks.md): Make the whole system runnable inside one environment with mocks for every external dependency; this replaces shared staging for agent verification.
+- [docs/04-sandboxes/parallel-work-isolation.md](docs/04-sandboxes/parallel-work-isolation.md): When several agents share a repository, each works on its own branch in its own worktree or environment and never switches the shared checkout.
+- [docs/04-sandboxes/secrets-and-network.md](docs/04-sandboxes/secrets-and-network.md): Credentials are injected outside the model's reach and scoped per run; network egress is deny-by-default with an allowlist.
+
+## 05-verification
+
+- [docs/05-verification/README.md](docs/05-verification/README.md): Reviewing code becomes reviewing proof; a single deterministic gate runs first, the builder returns evidence, and an independent reviewer with a clean context checks it within a bounded number of rounds.
+- [docs/05-verification/evidence-artifacts.md](docs/05-verification/evidence-artifacts.md): Every PR carries the proof its kind requires, produced by running the software; reviewers, human or agent, judge the proof first and the diff second.
+- [docs/05-verification/hooks.md](docs/05-verification/hooks.md): Harness hooks run fast checks inside the agent loop, so problems are fixed while the context is fresh; a hook must signal failure in the way the harness treats as "go back".
+- [docs/05-verification/independent-reviewer.md](docs/05-verification/independent-reviewer.md): A separate agent with a clean context and a model at least as capable as the builder reviews every PR against the criteria and the spec, and returns a structured verdict.
+- [docs/05-verification/return-loop.md](docs/05-verification/return-loop.md): Requested changes go back to the builder with the findings as input, counted by hidden markers on the PR; the third return puts the job on hold and tells a person.
+- [docs/05-verification/single-gate.md](docs/05-verification/single-gate.md): One script (lint, format, types, tests, build, repository guardrails) is the only bar; a failing gate means no PR.
+
+## 06-merge-policy
+
+- [docs/06-merge-policy/README.md](docs/06-merge-policy/README.md): A deterministic script decides merges; auto-merge only when risk, kind and paths all allow it, people review in proportion to risk, and the factory never merges its own changes by any other path.
+- [docs/06-merge-policy/human-review-and-hold.md](docs/06-merge-policy/human-review-and-hold.md): People review evidence and product fit rather than every line, approve where they already work, and can stop any job at any time with hold.
+- [docs/06-merge-policy/incidents.md](docs/06-merge-policy/incidents.md): For production incidents the factory optimizes time to a candidate fix, not autonomy; the alert arrives with a PR, and the on-call person decides.
+- [docs/06-merge-policy/risk-times-kind.md](docs/06-merge-policy/risk-times-kind.md): The effective merge requirement is the most restrictive of the risk rule, the kind rule and protected paths; this page gives the full matrix.
+
+## 07-memory-and-context
+
+- [docs/07-memory-and-context/README.md](docs/07-memory-and-context/README.md): Agents start every task from a briefing of scoped memory and the product spec, finish by recording learnings, and treat everything retrieved as reference, never as instructions.
+- [docs/07-memory-and-context/agent-readable-specs.md](docs/07-memory-and-context/agent-readable-specs.md): Keep the product spec in the repository as a roadmap plus one file per module with status, verifiable acceptance criteria and known gaps; triage, builder and reviewer all read it, and PRs update it.
+- [docs/07-memory-and-context/briefing-and-reflection.md](docs/07-memory-and-context/briefing-and-reflection.md): Retrieve a token-bounded briefing before reading code, and record a short outcome with a few reusable learnings at the end of every run.
+- [docs/07-memory-and-context/scoped-memory.md](docs/07-memory-and-context/scoped-memory.md): A memory service partitions everything by scope, derives identity from authentication, filters every query by scope, and allows writes to shared scopes only by promotion.
+
+## 08-self-improvement
+
+- [docs/08-self-improvement/README.md](docs/08-self-improvement/README.md): The factory is defined in code, records everything its agents do, measures itself with metrics and evals on its own data, and improves through pull requests against its own definition.
+- [docs/08-self-improvement/evals-and-benchmarks.md](docs/08-self-improvement/evals-and-benchmarks.md): Score every recorded session with targeted online evals, and replay your own past tasks across models and harnesses to choose routing by cost and quality.
+- [docs/08-self-improvement/factory-as-code.md](docs/08-self-improvement/factory-as-code.md): Declare the factory in versioned files so it can be diffed, branched, A/B tested and rolled back, and let agents propose changes to it through human-merged PRs.
+- [docs/08-self-improvement/metrics.md](docs/08-self-improvement/metrics.md): Measure throughput, quality, flow, automation, cost and evidence from week one, with a baseline taken before the factory starts.
+- [docs/08-self-improvement/record-everything.md](docs/08-self-improvement/record-everything.md): Keep a central record of every agent session (conversation, tools, diffs, evidence, cost) linked to its job; it is the raw material for evals, memory and improvement.
+
+## 09-adoption
+
+- [docs/09-adoption/README.md](docs/09-adoption/README.md): Build guardrails and verification before autonomy, earn trust in steps, change what engineers do, and avoid the failure modes the sources observed.
+- [docs/09-adoption/anti-patterns.md](docs/09-adoption/anti-patterns.md): The failure modes the sources observed, and the questions where they disagree, with the position this manifesto takes on each.
+- [docs/09-adoption/build-order.md](docs/09-adoption/build-order.md): Five phases with explicit exit criteria; never automate a loop whose output you would not merge by hand.
+- [docs/09-adoption/human-roles.md](docs/09-adoption/human-roles.md): Engineers become factory engineers and outcome owners; small pods own a product area end to end, decide what to build, tend guardrails and accept risk.
+- [docs/09-adoption/trust-ladder.md](docs/09-adoption/trust-ladder.md): Bots climb from read-only answers to scoped actions with evidence to owning an outcome, and the merge ceiling widens one kind at a time.
+
+## reference
+
+- [docs/reference/glossary.md](docs/reference/glossary.md): Definitions of every term the manifesto uses with a specific meaning.
+- [docs/reference/reference-implementation.md](docs/reference/reference-implementation.md): How the manifesto's practices map to the factory we run, and what broke along the way.
+- [docs/reference/sources.md](docs/reference/sources.md): The ten talks this manifesto draws on, with the stable keys (S1 to S10) used in every Sources block.
