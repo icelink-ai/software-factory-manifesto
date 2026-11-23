@@ -19,9 +19,9 @@ prerequisites: [risk-times-kind.md]
 - **MG-18** Alerts SHOULD create one job per distinct error (deduplicated by fingerprint), labeled
   with their source.
 - **MG-19** An incident job that stays in one state longer than a short configured threshold
-  SHOULD alert an operations channel.
-- **MG-20** When the error cannot be reproduced, the job MUST go to `hold` and the on-call person
-  MUST be told, rather than receiving a speculative fix.
+  (for example 30 minutes) SHOULD alert an operations channel.
+- **MG-20** When the error cannot be reproduced, the job MUST go to `hold` with no PR, and the
+  on-call person MUST be told, rather than receiving a speculative fix (see `IN-24`).
 
 ## Diagram
 

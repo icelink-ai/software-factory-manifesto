@@ -186,8 +186,8 @@ Each id links to the page that explains it. MUST, SHOULD and MAY follow RFC 2119
 - [MG-16](docs/06-merge-policy/incidents.md) Incident jobs MUST never auto-merge, whatever their risk.
 - [MG-17](docs/06-merge-policy/incidents.md) The incident PR MUST include a regression test reproducing the error and a short root-cause note.
 - [MG-18](docs/06-merge-policy/incidents.md) Alerts SHOULD create one job per distinct error (deduplicated by fingerprint), labeled with their source.
-- [MG-19](docs/06-merge-policy/incidents.md) An incident job that stays in one state longer than a short configured threshold SHOULD alert an operations channel.
-- [MG-20](docs/06-merge-policy/incidents.md) When the error cannot be reproduced, the job MUST go to `hold` and the on-call person MUST be told, rather than receiving a speculative fix.
+- [MG-19](docs/06-merge-policy/incidents.md) An incident job that stays in one state longer than a short configured threshold (for example 30 minutes) SHOULD alert an operations channel.
+- [MG-20](docs/06-merge-policy/incidents.md) When the error cannot be reproduced, the job MUST go to `hold` with no PR, and the on-call person MUST be told, rather than receiving a speculative fix (see `IN-24`).
 
 ## 07. Memory and context
 

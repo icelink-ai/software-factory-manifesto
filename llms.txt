@@ -52,7 +52,7 @@
 
 ## 06-merge-policy
 
-- [docs/06-merge-policy/README.md](docs/06-merge-policy/README.md): A deterministic script decides merges; auto-merge only when risk, kind and paths all allow it, people review in proportion to risk, and the factory never merges its own changes by any other path.
+- [docs/06-merge-policy/README.md](docs/06-merge-policy/README.md): A deterministic script decides merges; auto-merge only when risk, kind and paths all allow it, people review in proportion to risk, and nothing but the policy script can merge a factory PR.
 - [docs/06-merge-policy/human-review-and-hold.md](docs/06-merge-policy/human-review-and-hold.md): People review evidence and product fit rather than every line, approve where they already work, and can stop any job at any time with hold.
 - [docs/06-merge-policy/incidents.md](docs/06-merge-policy/incidents.md): For production incidents the factory optimizes time to a candidate fix, not autonomy; the alert arrives with a PR, and the on-call person decides.
 - [docs/06-merge-policy/risk-times-kind.md](docs/06-merge-policy/risk-times-kind.md): The effective merge requirement is the most restrictive of the risk rule, the kind rule and protected paths; this page gives the full matrix.

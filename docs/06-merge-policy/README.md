@@ -3,7 +3,7 @@ id: 06-merge-policy
 level: 1
 parent: ../../README.md
 children: [risk-times-kind.md, human-review-and-hold.md, incidents.md]
-summary: A deterministic script decides merges; auto-merge only when risk, kind and paths all allow it, people review in proportion to risk, and the factory never merges its own changes by any other path.
+summary: A deterministic script decides merges; auto-merge only when risk, kind and paths all allow it, people review in proportion to risk, and nothing but the policy script can merge a factory PR.
 prerequisites: [../05-verification/README.md]
 ---
 
