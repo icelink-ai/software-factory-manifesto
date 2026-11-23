@@ -1,0 +1,16 @@
+{
+  "name": "software-factory-manifesto",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "docs:prepare": "python scripts/build_site.py",
+    "docs:dev": "python scripts/build_site.py && vitepress dev website",
+    "docs:build": "python scripts/build_site.py && vitepress build website",
+    "docs:preview": "vitepress preview website"
+  },
+  "devDependencies": {
+    "mermaid": "11.12.0",
+    "vitepress": "1.6.4",
+    "vitepress-plugin-mermaid": "2.0.17"
+  }
+}

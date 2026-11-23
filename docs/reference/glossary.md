@@ -9,7 +9,9 @@ prerequisites: []
 
 # Glossary
 
-Terms are listed alphabetically. Pages use these terms with exactly this meaning.
+> **In short:** every term the manifesto uses with a specific meaning, in plain words.
+
+Terms are listed alphabetically. Pages use them with exactly this meaning.
 
 | Term | Definition |
 |---|---|
@@ -18,11 +20,13 @@ Terms are listed alphabetically. Pages use these terms with exactly this meaning
 | **Briefing** | Memory retrieved for a task before the agent reads code: procedures, learnings and similar past runs. |
 | **Builder** | The agent that implements a request and opens the pull request. |
 | **Deterministic spine** | The non-LLM code (scripts, workflows, a state machine) that moves work between stages. LLMs make judgment calls inside stages; the spine decides what happens next. |
+| **Dispatch** | The step that turns an event (a label, a command, a webhook) into exactly one run of one stage. |
 | **Evidence** | An artifact that proves a change does what it claims: a test that failed before and passes after, a screenshot, a video, a trace, a benchmark. |
 | **Factory** | The whole system that turns requests into merged changes: intake, triage, build, gate, review, merge, memory and metrics. |
 | **Factory-as-code** | The factory's definition (agents, prompts, models, policies, gates) kept in a versioned repository and changed through pull requests. |
 | **Gate** | One deterministic script (lint, format, types, tests, build, repository guardrails) that must pass before a pull request exists. CI runs the same script. |
 | **Hold** | A state, and a label, that stops all automation on a job until a person releases it. |
+| **Hook** | A command the agent's harness runs on its own when something happens, such as after each edit. |
 | **Job** | The record of one request moving through the factory: state, history, attempts, cost, links. |
 | **Kind** | What a request is: `bug`, `feature`, `incident`, `docs`, `refactor` or `chore`. The second dimension next to risk. |
 | **Merge ceiling** | The most autonomy a job may get at merge time. The effective ceiling is the most restrictive of risk, kind and protected paths. |
@@ -31,10 +35,13 @@ Terms are listed alphabetically. Pages use these terms with exactly this meaning
 | **Reviewer** | An agent separate from the builder, with a clean context, that reads the diff and the evidence and approves or requests changes. |
 | **Risk** | How bad a wrong change could be: `low`, `medium` or `high`. Set by triage. |
 | **Run** | One execution of one agent on one job, with its own id, recorded in memory. |
+| **Sandbox** | A throwaway environment for one run, with the whole system inside it and nothing real in reach. |
 | **Scope** | The partition of memory an agent may read or write: its own, the project's, the domain's, or global. |
 | **Slop** | Code that works today but degrades the codebase: duplicated logic, hacks justified by comments, tests that test nothing. |
+| **Spec** | The product specification in the repository: one file per module, with acceptance criteria an agent can check. |
 | **Stack** | A large request split into ordered parts, each a small job. The next part starts only after the previous one merges. |
 | **Triage** | The read-only step that classifies a request (risk, kind, size), rewrites acceptance criteria and asks questions when information is missing. |
+| **Verdict** | The structured answer (JSON) an agent returns, such as triage's classification or the reviewer's approval. A script applies it. |
 
 ## Up
 

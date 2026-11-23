@@ -1,107 +1,103 @@
 # The Software Factory Manifesto
 
-> Trust comes from the environment, not from the model. Build the guardrails and the proof first,
+> **In short:** AI agents can turn requests into merged code on their own. They do it safely only
+> when the environment makes bad changes hard and proof mandatory. Build that environment first,
 > then hand over the work.
 
-A **software factory** is a system in which AI agents take a request (a chat message, an issue,
-an alert), build the change in an isolated environment, prove that it works, and get it merged
-under a policy, with people deciding what to build and accepting the risk. This manifesto
-collects what works, from ten talks by teams running factories and from our own reference
-implementation, as rules that an agent can follow and a person can audit.
+📖 **Read it as a website:** https://icelink-ai.github.io/software-factory-manifesto/
 
-**For agents:** start at [`llms.txt`](llms.txt) or [`RULES.md`](RULES.md), and read
-[`AGENTS.md`](AGENTS.md) for how to cite and apply this manifesto.
+## What is a software factory?
 
-## The principles
+A software factory is a system where AI agents do the routine work of shipping code. Someone asks
+for a change in chat. An agent builds it in an isolated machine, proves it works, and a policy
+decides whether it can merge. People decide what to build and accept the risk.
 
-1. **A deterministic spine moves the work.** Scripts and a state machine decide what happens next;
-   models make judgment calls inside each stage. → [Deterministic spine](docs/02-deterministic-spine/README.md)
-2. **Every correction becomes code.** Architecture, lint rules and types first; prose instructions
-   last and short. → [Guardrails](docs/03-guardrails/README.md)
-3. **Intake decides before anyone builds.** A read-only triage classifies risk, kind and size, and
-   asks questions instead of guessing. → [Work intake](docs/01-work-intake/README.md)
-4. **Every run is disposable and isolated.** The whole system runs inside the sandbox against
-   mocks; secrets and production are out of reach. → [Sandboxes](docs/04-sandboxes/README.md)
-5. **Review proof, not prose.** One gate, evidence in every PR, an independent reviewer, bounded
-   rounds. → [Verification](docs/05-verification/README.md)
-6. **Autonomy is a policy ceiling.** The strictest of risk, kind and protected paths decides who
+This manifesto collects what works. It draws on ten talks by teams that run factories, and on the
+factory we run ourselves. Every practice is written so a person can understand it and an AI agent
+can follow it.
+
+## Start here
+
+| If you want to… | Read |
+|---|---|
+| See how it works, start to finish | [The journey of a request](docs/00-journey/README.md): one bug report, nine stages |
+| Build your own factory | [Start your factory](docs/09-adoption/build-order.md): five phases with exit criteria |
+| Check a rule | [All rules](RULES.md): every rule by id |
+| Point an AI agent at this | [AGENTS.md](AGENTS.md) and [llms.txt](llms.txt) |
+
+## The nine ideas
+
+1. **Decide before you build.** A read-only agent works out what each request is, how risky it is,
+   and what "done" means. → [Work intake](docs/01-work-intake/README.md)
+2. **Let code move the work.** Scripts and a state machine decide what happens next. Models only
+   make judgment calls inside a stage. → [Deterministic spine](docs/02-deterministic-spine/README.md)
+3. **Make the wrong thing hard to write.** Every repeated correction becomes a check. Actions you
+   can't undo are blocked. → [Guardrails](docs/03-guardrails/README.md)
+4. **Give every run a throwaway machine.** The whole system runs inside it. Nothing real is in
+   reach. → [Sandboxes](docs/04-sandboxes/README.md)
+5. **Review proof, not promises.** One gate, evidence in every pull request, and a second agent
+   that checks it. → [Verification](docs/05-verification/README.md)
+6. **Let policy decide the merge.** The strictest of risk, kind and protected paths decides who
    merges. → [Merge policy](docs/06-merge-policy/README.md)
-7. **Agents start from memory and end by teaching it.** Scoped memory, briefings, learnings, a
-   spec in the repo. → [Memory and context](docs/07-memory-and-context/README.md)
-8. **The factory measures and improves itself.** Factory-as-code, recorded sessions, evals on
-   your own work. → [Self-improvement](docs/08-self-improvement/README.md)
-9. **Earn autonomy in order.** Guardrails, environments, pipeline, earned merge, self-improvement.
-   → [Adoption](docs/09-adoption/README.md)
+7. **Start from memory, end by teaching it.** Agents read what the factory knows and record what
+   they learn. → [Memory and context](docs/07-memory-and-context/README.md)
+8. **Measure, then improve.** Record every session, score it, and change the factory through pull
+   requests. → [Self-improvement](docs/08-self-improvement/README.md)
+9. **Earn autonomy in order.** Guardrails, then environments, then the pipeline, then automatic
+   merges. → [Adoption](docs/09-adoption/README.md)
 
 ## The factory on one page
 
+The diagram shows the whole flow. Colors tell you who acts: blue is a person, gray is a script,
+purple is an AI agent, green is a job state, orange is a stop.
+
 ```mermaid
 flowchart TD
-    subgraph In["1. Intake"]
-        REQ["Request<br/>chat, issue, alert"] --> TRI{"Triage<br/>read-only<br/>risk, kind, size"}
-        TRI -->|questions| ASK[Ask the requester]
-        ASK --> TRI
-        TRI -->|too big| STK[Split into a stack]
-    end
-    subgraph Build["2-4. Build in a sandbox"]
-        BLD["Builder agent<br/>briefing from memory"] --> GATE{"Single gate<br/>lint, types, tests"}
-        GATE -->|fail| BLD
-    end
-    subgraph Verify["5. Verify"]
-        PR["PR with evidence"] --> REV{"Independent reviewer<br/>clean context"}
-        REV -->|"changes, bounded"| BLD
-    end
-    subgraph Merge["6. Merge policy"]
-        POL{"risk x kind x<br/>protected paths"}
-        POL -->|allowed| AUTO[Auto-merge]
-        POL -->|people needed| HUM[Human approval]
-    end
-    TRI -->|ready| BLD
-    STK --> BLD
-    GATE -->|pass| PR
-    REV -->|approved| POL
-    AUTO --> DONE[Merged, requester notified]
-    HUM --> DONE
-    DONE --> REC[("7-8. Memory, metrics, evals")]
-    REC -. improves .-> BLD
-    REC -. "PRs to the factory" .-> POL
+    REQ["Someone asks<br/>in chat, an issue or an alert"]:::person --> TRI["Triage agent<br/>decides kind, risk, size"]:::agent
+    TRI -->|"questions"| REQ
+    TRI --> BLD["Builder agent<br/>works in a sandbox"]:::agent
+    BLD --> GATE{"Gate script<br/>lint, types, tests"}:::script
+    GATE -->|fail| BLD
+    GATE -->|pass| PR["Pull request<br/>with evidence"]:::state
+    PR --> REV["Reviewer agent<br/>fresh context"]:::agent
+    REV -->|"changes, at most twice"| BLD
+    REV -->|approved| POL{"Merge script<br/>risk, kind, paths"}:::script
+    POL -->|allowed| AUTO["Merged automatically"]:::state
+    POL -->|"people needed"| HUM["A person approves"]:::person
+    HUM --> DONE["Merged"]:::state
+    AUTO --> DONE
+    DONE --> MEM["Memory and metrics<br/>make the next run better"]:::script
+    classDef person fill:#dbeafe,stroke:#2563eb,color:#1e3a8a
+    classDef script fill:#f1f5f9,stroke:#64748b,color:#0f172a
+    classDef agent fill:#ede9fe,stroke:#7c3aed,color:#4c1d95
+    classDef state fill:#dcfce7,stroke:#16a34a,color:#14532d
+    classDef stop fill:#ffedd5,stroke:#ea580c,color:#7c2d12
 ```
 
-Every arrow above is executed by deterministic code; every diamond with a model behind it returns
-structured data that code applies. A person can put any job on `hold` at any moment.
-
-## Reading paths
-
-| If you are | Read |
-|---|---|
-| An agent working inside a factory | [AGENTS.md](AGENTS.md), then the rules for your stage in [RULES.md](RULES.md) |
-| Starting a factory | [Adoption](docs/09-adoption/README.md) → [Guardrails](docs/03-guardrails/README.md) → [Deterministic spine](docs/02-deterministic-spine/README.md) |
-| Designing the pipeline | [Work intake](docs/01-work-intake/README.md) → [Job state machine](docs/02-deterministic-spine/job-state-machine.md) → [Request kinds](docs/01-work-intake/request-kinds.md) → [Merge policy](docs/06-merge-policy/README.md) |
-| Responsible for quality | [Verification](docs/05-verification/README.md) → [Anti-patterns](docs/09-adoption/anti-patterns.md) → [Metrics](docs/08-self-improvement/metrics.md) |
-| Responsible for security | [Deny rules and protected paths](docs/03-guardrails/deny-rules-and-protected-paths.md) → [Sandboxes](docs/04-sandboxes/README.md) → [Scoped memory](docs/07-memory-and-context/scoped-memory.md) |
+A person can stop any job at any moment by putting it on `hold`. To see each step up close, follow
+[the journey of a request](docs/00-journey/README.md).
 
 ## How this repository is organized
 
-Three levels, each a link away from the next:
+Each level is one click away from the next, so you can stop reading at any depth.
 
-- **Level 0** — this page: the thesis, the principles, the map.
-- **Level 1** — one page per theme in `docs/NN-theme/README.md`, with its rules and main diagram.
-- **Level 2** — one page per subtopic in `docs/NN-theme/*.md`, with detailed rules, diagrams,
-  anti-patterns and sources.
+| Level | Where | What you get |
+|---|---|---|
+| Overview | This page | The nine ideas and the map |
+| Story | `docs/00-journey/` | One request, followed stage by stage |
+| Themes | `docs/01-…` to `docs/09-…`, `README.md` in each | One idea per theme, with its main diagram |
+| Details | The other pages in each theme | The problem, how it works, an example, and a checklist |
+| Reference | `RULES.md`, `docs/reference/` | Every rule, the glossary, the sources |
 
-Every page has the same blocks in the same order (Rules, Diagram, Why or How to apply,
-Anti-patterns, Sources, Go deeper, Up) and YAML front matter with `id`, `level`, `parent`,
-`children`, `summary` and `prerequisites`. Rules have stable ids (`GR-03`) collected in
-[RULES.md](RULES.md). Terms are defined in the [glossary](docs/reference/glossary.md); sources are
-listed in [sources](docs/reference/sources.md); how we run it ourselves is in the
-[reference implementation](docs/reference/reference-implementation.md).
+Every page ends with a **Checklist** of rules. Each rule has a permanent id, like `GR-03`, and uses
+**MUST**, **SHOULD** or **MAY** as in RFC 2119. MUST is required. SHOULD is a strong default you
+can skip for a recorded reason.
 
-## Keywords
-
-**MUST**, **MUST NOT**, **SHOULD**, **SHOULD NOT** and **MAY** are used as in RFC 2119: MUST is a
-requirement for a factory that follows this manifesto; SHOULD is a strong default you can depart
-from with a recorded reason.
+Terms are defined in the [glossary](docs/reference/glossary.md). The ten talks are listed in
+[sources](docs/reference/sources.md). How we run it ourselves is in the
+[reference implementation](docs/reference/reference-implementation.md). How we write is in the
+[style guide](STYLE.md).
 
 ## License
 
-[CC BY 4.0](LICENSE). Copy, adapt and build on it, with attribution.
+[CC BY 4.0](LICENSE). Copy it, adapt it and build on it. Just give credit.
