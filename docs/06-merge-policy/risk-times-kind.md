@@ -56,10 +56,10 @@ merge:
   kinds:
     feature:  { min_people: 1, auto_merge: false }
     incident: { min_people: 1, auto_merge: false, stuck_after_minutes: 30 }
-    bug:      { min_people: 0 }
-    docs:     { min_people: 0 }
-    refactor: { min_people: 0 }
-    chore:    { min_people: 0 }
+    bug:      { min_people: 0, auto_merge: true }
+    docs:     { min_people: 0, auto_merge: true }
+    refactor: { min_people: 0, auto_merge: true }
+    chore:    { min_people: 0, auto_merge: true }
   protected_paths:
     - .github/
     - factory/

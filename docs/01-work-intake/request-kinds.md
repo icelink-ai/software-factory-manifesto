@@ -28,7 +28,8 @@ vary only the evidence and the degree of autonomy [S1][S3][S7][S8][S9].
 - **IN-23** The effective merge ceiling MUST be the most restrictive of risk, kind and protected
   paths (see [Risk × kind](../06-merge-policy/risk-times-kind.md)).
 - **IN-24** A `bug` or `incident` that the builder cannot reproduce MUST stop with no PR and go to
-  `hold` with a "not reproduced" note.
+  `hold` with a "not reproduced" note, and the requester (for an incident, the on-call person)
+  MUST be told.
 
 ## The six kinds
 
@@ -37,9 +38,11 @@ vary only the evidence and the degree of autonomy [S1][S3][S7][S8][S9].
 | `bug` | Existing behavior is wrong | Steps to reproduce, expected vs actual, where | Write a test that reproduces the failure and see it fail on main | Test fails on main, passes on branch; screenshot or video if visual | Auto-merge if `risk:low` | 0 |
 | `feature` | New behavior, or a change users can see | Goal, who uses it, verifiable acceptance criteria | Map each criterion to a test or check | Checklist: criterion → test or artifact | Never auto-merge | 1 |
 | `incident` | Production error (alert, error tracker, urgent report) | Alert or log link, release, frequency | Regression test that reproduces the error; root-cause note | Regression test + diagnosis | Never auto-merge | 1 (on call) |
-| `docs` | Documentation, text or copy only | What changes and why | Edit | Diff touches documentation paths only | Auto-merge if `risk:low` and no protected path | 0 |
+| `docs` | Documentation, text or copy only | What changes and why | Edit | Diff touches documentation paths only | Auto-merge if `risk:low` | 0 |
 | `refactor` | Internal improvement with no behavior change, including new lint rules | What improves and why | Run existing tests before touching code | Existing tests unchanged (only additions allowed) | Auto-merge if `risk:low` | 0 |
 | `chore` | Dependencies, CI, build, configuration | What to update, to which version | Read the release notes | Gate green; release notes in the PR | Auto-merge if `risk:low` | 0 |
+
+Protected paths force a human merge for **every** kind, not only `docs` (`GR-24`, `MG-09`).
 
 Goal-oriented work ("bring p99 latency under 200 ms", "keep Android at parity with iOS") is not a
 kind. It is a long-running objective that spawns jobs of these kinds, and it needs evals and

@@ -29,7 +29,7 @@ Each id links to the page that explains it. MUST, SHOULD and MAY follow RFC 2119
 - [IN-21](docs/01-work-intake/request-kinds.md) An item with no kind MUST be treated as `feature`.
 - [IN-22](docs/01-work-intake/request-kinds.md) Kind MUST NOT add states to the job state machine. It parameterizes the existing stages.
 - [IN-23](docs/01-work-intake/request-kinds.md) The effective merge ceiling MUST be the most restrictive of risk, kind and protected paths (see [Risk × kind](../06-merge-policy/risk-times-kind.md)).
-- [IN-24](docs/01-work-intake/request-kinds.md) A `bug` or `incident` that the builder cannot reproduce MUST stop with no PR and go to `hold` with a "not reproduced" note.
+- [IN-24](docs/01-work-intake/request-kinds.md) A `bug` or `incident` that the builder cannot reproduce MUST stop with no PR and go to `hold` with a "not reproduced" note, and the requester (for an incident, the on-call person) MUST be told.
 - [IN-25](docs/01-work-intake/sizing-and-stacks.md) A job MUST fit one bounded run (a fixed budget of turns and wall-clock time) and touch one module.
 - [IN-26](docs/01-work-intake/sizing-and-stacks.md) Triage MUST assign a size (`S`, `M`, `L`). Size `L` MUST NOT go to a builder.
 - [IN-27](docs/01-work-intake/sizing-and-stacks.md) An `L` request MUST be split into 2 to 5 ordered parts, each a job with its own risk and kind, linked to a parent item.

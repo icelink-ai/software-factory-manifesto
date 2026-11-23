@@ -37,7 +37,7 @@ sequenceDiagram
         F->>OC: page with PR, test, root cause
         OC->>F: approve and merge, or request changes
     else not reproduced
-        F->>OC: page with findings, job on hold
+        F->>OC: page with findings, no PR, job on hold
     end
 ```
 
